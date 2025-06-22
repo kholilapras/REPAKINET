@@ -24,20 +24,20 @@ function tambahPaket() {
     const kuota = parseFloat(document.getElementById("kuota").value);
     const harga = parseFloat(document.getElementById("harga").value);
     const masaAktif = parseFloat(document.getElementById("masaAktif").value);
-    const noTelp = document.getElementById("noTelp").value.trim();
+    const keterangan = document.getElementById("keterangan").value.trim();
 
     if (isNaN(kuota) || isNaN(harga) || isNaN(masaAktif) || harga <= 0) {
         showError("Mohon isi semua data dengan benar dan harga tidak boleh 0.");
         return;
     }
 
-    paketList.push({ kuota, harga, masaAktif, noTelp });
+    paketList.push({ kuota, harga, masaAktif, keterangan });
     tampilkanTabel();
 
     document.getElementById("kuota").value = "";
     document.getElementById("harga").value = "";
     document.getElementById("masaAktif").value = "";
-    document.getElementById("noTelp").value = "";
+    document.getElementById("keterangan").value = "";
 }
 
 function tampilkanTabel() {
@@ -50,7 +50,7 @@ function tampilkanTabel() {
             <td>${paket.kuota}</td>
             <td>${paket.harga}</td>
             <td>${paket.masaAktif}</td>
-            <td>${paket.noTelp || '-'}</td>
+            <td>${paket.keterangan || '-'}</td>
         `;
         tbody.appendChild(row);
     });
@@ -97,10 +97,10 @@ function hitungTopsis() {
 
     const hasil = document.getElementById("hasil");
     hasil.classList.remove("d-none");
-    hasil.innerHTML = `<h5 class="mb-2">📊 Skor Semua Paket:</h5><ol>` +
+    hasil.innerHTML = `<h5 class="mb-2">Skor Semua Paket:</h5><ol>` +
         skor.map(s => {
             const p = paketList[s.index];
-            return `<li>Kuota ${p.kuota}GB, Harga Rp${p.harga}, Masa Aktif ${p.masaAktif} hari, No. Telp: ${p.noTelp || '-'}, (Skor: ${s.skor.toFixed(5)})</li>`;
+            return `<li>Kuota ${p.kuota}GB, Harga Rp${p.harga}, Masa Aktif ${p.masaAktif} hari, No. Telp: ${p.keterangan || '-'}, (Skor: ${s.skor.toFixed(5)})</li>`;
         }).join("") +
-        `</ol><strong>✅ Paket Terbaik:</strong> <br>Kuota ${paketList[skor[0].index].kuota}GB, Harga Rp${paketList[skor[0].index].harga}, Masa Aktif ${paketList[skor[0].index].masaAktif} hari, No. Telp: ${paketList[skor[0].index].noTelp || '-'} (Skor: ${skor[0].skor.toFixed(5)})`;
+        `</ol><strong>✅ Paket Terbaik:</strong> <br>Kuota ${paketList[skor[0].index].kuota}GB, Harga Rp${paketList[skor[0].index].harga}, Masa Aktif ${paketList[skor[0].index].masaAktif} hari, No. Telp: ${paketList[skor[0].index].keterangan || '-'} (Skor: ${skor[0].skor.toFixed(5)})`;
 }
