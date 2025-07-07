@@ -61,9 +61,9 @@ function tampilkanTabel() {
     paketList.forEach((paket, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-      <td>${paket.kuota}</td>
+      <td>${paket.kuota} GB</td>
       <td>Rp${formatRupiah(paket.harga)}</td>
-      <td>${paket.masaAktif}</td>
+      <td>${paket.masaAktif} Hari</td>
       <td>${paket.keterangan || '-'}</td>
       <td>
         <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus" data-index="${index}">Hapus</button>
