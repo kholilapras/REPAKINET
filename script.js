@@ -1,10 +1,26 @@
 const paketList = [];
-
 const atribut = {
     kuota: { bobot: 1 / 3, jenis: "benefit" },
     harga: { bobot: 1 / 3, jenis: "cost" },
     masaAktif: { bobot: 1 / 3, jenis: "benefit" }
 };
+
+function formatRupiah(angka) {
+    return angka.toLocaleString("id-ID");
+}
+
+function formatInputRupiah(value) {
+    const number = value.replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+document.getElementById("harga").addEventListener("input", function (e) {
+    e.target.value = formatInputRupiah(e.target.value);
+});
+
+document.getElementById("harga").addEventListener("keypress", function (e) {
+    if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
 
 function showError(message) {
     const alert = document.getElementById("alertError");
@@ -20,9 +36,8 @@ function clearError() {
 
 function tambahPaket() {
     clearError();
-
     const kuota = parseFloat(document.getElementById("kuota").value);
-    const harga = parseFloat(document.getElementById("harga").value);
+    const harga = parseInt(document.getElementById("harga").value.replace(/\./g, ""));
     const masaAktif = parseFloat(document.getElementById("masaAktif").value);
     const keterangan = document.getElementById("keterangan").value.trim();
 
@@ -46,19 +61,20 @@ function tampilkanTabel() {
     paketList.forEach((paket, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${paket.kuota}</td>
-            <td>${paket.harga}</td>
-            <td>${paket.masaAktif}</td>
-            <td>${paket.keterangan || '-'}</td>
-        `;
+      <td>${paket.kuota}</td>
+      <td>Rp${formatRupiah(paket.harga)}</td>
+      <td>${paket.masaAktif}</td>
+      <td>${paket.keterangan || '-'}</td>
+      <td>
+        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalHapus" data-index="${index}">Hapus</button>
+      </td>
+    `;
         tbody.appendChild(row);
     });
 }
 
 function hitungTopsis() {
     clearError();
-
     if (paketList.length === 0) {
         showError("Belum ada paket yang ditambahkan.");
         return;
@@ -87,20 +103,64 @@ function hitungTopsis() {
     const skor = matrix.map(v => {
         const dPlus = Math.sqrt(Object.keys(atribut).reduce((sum, k) => sum + Math.pow(v[k] - ideal[k], 2), 0));
         const dMin = Math.sqrt(Object.keys(atribut).reduce((sum, k) => sum + Math.pow(v[k] - antiIdeal[k], 2), 0));
-        return {
-            index: v.index,
-            skor: dMin / (dPlus + dMin)
-        };
+        return { index: v.index, skor: dMin / (dPlus + dMin) };
     });
 
     skor.sort((a, b) => b.skor - a.skor);
+    const skorTertinggi = skor[0].skor;
+    const semuaTerbaik = skor.filter(s => s.skor === skorTertinggi);
 
     const hasil = document.getElementById("hasil");
     hasil.classList.remove("d-none");
-    hasil.innerHTML = `<h5 class="mb-2">Skor Semua Paket:</h5><ol>` +
-        skor.map(s => {
-            const p = paketList[s.index];
-            return `<li>Kuota ${p.kuota}GB, Harga Rp${p.harga}, Masa Aktif ${p.masaAktif} hari, No. Telp: ${p.keterangan || '-'}, (Skor: ${s.skor.toFixed(5)})</li>`;
-        }).join("") +
-        `</ol><strong>✅ Paket Terbaik:</strong> <br>Kuota ${paketList[skor[0].index].kuota}GB, Harga Rp${paketList[skor[0].index].harga}, Masa Aktif ${paketList[skor[0].index].masaAktif} hari, No. Telp: ${paketList[skor[0].index].keterangan || '-'} (Skor: ${skor[0].skor.toFixed(5)})`;
+
+    hasil.innerHTML = `
+    <h5 class="mb-3">Skor Semua Paket</h5>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    ${skor.map((s, i) => {
+        const p = paketList[s.index];
+        return `
+      <div class="col">
+        <div class="card h-100 shadow-lg border-0 bg-light text-black">
+          <div class="card-body">
+            <h5 class="card-title fw-bold"># ${i + 1}</h5>
+            <ul class="list-unstyled mb-3">
+              <li><strong>Kuota:</strong> ${p.kuota} GB</li>
+              <li><strong>Harga:</strong> Rp${formatRupiah(p.harga)}</li>
+              <li><strong>Masa Aktif:</strong> ${p.masaAktif} hari</li>
+              <li><strong>Keterangan:</strong> ${p.keterangan || '-'}</li>
+            </ul>
+            <span class="badge text-bg-dark">Skor: ${s.skor.toFixed(4)}</span>
+          </div>
+        </div>
+      </div>
+      `;
+    }).join("")}
+    </div >
+    <button class="btn btn-danger fw-bold reset-btn mt-3" onclick="resetSemua()">Hapus Semua Data</button>
+`;
 }
+
+function resetSemua() {
+    paketList.length = 0;
+    tampilkanTabel();
+    document.getElementById("hasil").classList.add("d-none");
+}
+
+// Modal hapus
+let indexUntukDihapus = null;
+const modalHapus = document.getElementById("modalHapus");
+
+modalHapus.addEventListener("show.bs.modal", function (event) {
+    const button = event.relatedTarget;
+    indexUntukDihapus = parseInt(button.getAttribute("data-index"));
+});
+
+document.getElementById("btnKonfirmasiHapus").addEventListener("click", function () {
+    if (indexUntukDihapus !== null) {
+        paketList.splice(indexUntukDihapus, 1);
+        tampilkanTabel();
+        indexUntukDihapus = null;
+        bootstrap.Modal.getInstance(modalHapus).hide();
+        document.getElementById("hasil").classList.add("d-none");
+    }
+});
